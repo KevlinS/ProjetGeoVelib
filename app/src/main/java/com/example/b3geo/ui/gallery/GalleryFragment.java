@@ -270,7 +270,7 @@ public class GalleryFragment extends Fragment implements OnMapReadyCallback {
                         try {
                             JSONArray jsonArray = response.getJSONArray("records");
 
-                            for (int p=0; p<jsonArray.length(); p++){
+                            for (int p=1; p<jsonArray.length(); p++){
                                 JSONObject jsonObject = jsonArray.getJSONObject(p);
                                 JSONObject fields = jsonObject.getJSONObject("fields");
                                 String station = fields.getString("station");

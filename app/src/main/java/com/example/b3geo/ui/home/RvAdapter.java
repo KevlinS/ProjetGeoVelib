@@ -40,6 +40,8 @@ public class RvAdapter extends RecyclerView.Adapter<RvAdapter.RvViewHolder>{
     public void onBindViewHolder(RvAdapter.RvViewHolder holder, int position) {
         final Rvdata  rvdata = rvdatas.get(position);
         holder.itemName.setText(rvdata.getName());
+
+
         /* holder.llItem.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -59,6 +61,7 @@ public class RvAdapter extends RecyclerView.Adapter<RvAdapter.RvViewHolder>{
         TextView itemName;
         ImageView itemImg;
         LinearLayout llItem;
+
         public RvViewHolder(View itemView) {
             super(itemView);
 

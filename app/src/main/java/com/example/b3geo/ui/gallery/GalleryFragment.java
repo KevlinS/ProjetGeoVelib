@@ -5,6 +5,7 @@ import android.app.Activity;
 import android.app.Application;
 import android.content.Context;
 import android.content.pm.PackageManager;
+import android.graphics.Color;
 import android.location.Address;
 import android.location.Geocoder;
 import android.location.Location;
@@ -17,7 +18,10 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.Toast;
+import androidx.appcompat.widget.Toolbar;
+
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -28,17 +32,33 @@ import androidx.fragment.app.FragmentActivity;
 import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
 
+
+import com.android.volley.Request;
+import com.android.volley.RequestQueue;
+import com.android.volley.Response;
+import com.android.volley.VolleyError;
+import com.android.volley.toolbox.JsonObjectRequest;
+import com.android.volley.toolbox.Volley;
 import com.example.b3geo.MainActivity;
 import com.example.b3geo.R;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.model.CircleOptions;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.android.material.bottomnavigation.BottomNavigationView;
+
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.io.IOException;
+import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.util.List;
 
 import static android.content.Context.LOCATION_SERVICE;
@@ -69,9 +89,24 @@ public class GalleryFragment extends Fragment implements OnMapReadyCallback {
 
 
 
-        SupportMapFragment mapFragment = (SupportMapFragment) this.getChildFragmentManager()
-                .findFragmentById(R.id.map);
-        mapFragment.getMapAsync(this);
+        SupportMapFragment mapFragment = (SupportMapFragment) getChildFragmentManager().findFragmentById(R.id.map);
+        mapFragment.getMapAsync(GalleryFragment.this);
+
+        Button MyLocBtn = (Button) view.findViewById(R.id.myButton);
+        MyLocBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
+                    //mMap.setMinZoomPreference(15);
+                    mMap.moveCamera(CameraUpdateFactory.zoomTo(15));
+
+            }
+        });
+
+
+
+
+
         LocationManager locationManager = (LocationManager) getActivity().getSystemService(LOCATION_SERVICE);
         if (ActivityCompat.checkSelfPermission(getActivity(),
                 Manifest.permission.ACCESS_FINE_LOCATION)
@@ -79,6 +114,7 @@ public class GalleryFragment extends Fragment implements OnMapReadyCallback {
             ActivityCompat.requestPermissions(getActivity(), new String[]
                             {Manifest.permission.ACCESS_FINE_LOCATION},
                     REQUEST_LOCATION_PERMISSION);
+
         } else {
 
             locationListener = new LocationListener() {
@@ -100,10 +136,10 @@ public class GalleryFragment extends Fragment implements OnMapReadyCallback {
                         if (marker != null) {
                             marker.remove();
                             marker = mMap.addMarker(new MarkerOptions().position(latLng).title(result));
-                            mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(latLng, 15.5f));
+                            mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(latLng, 11.5f));
                         } else {
                             marker = mMap.addMarker(new MarkerOptions().position(latLng).title(result));
-                            mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(latLng, 15.5f));
+                            mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(latLng, 11.5f));
                         }
 
 
@@ -134,6 +170,7 @@ public class GalleryFragment extends Fragment implements OnMapReadyCallback {
         return view;
     }
 
+
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         if (ActivityCompat.checkSelfPermission(getActivity(),
@@ -158,11 +195,11 @@ public class GalleryFragment extends Fragment implements OnMapReadyCallback {
                         if (marker != null){
                             marker.remove();
                             marker = mMap.addMarker(new MarkerOptions().position(latLng).title(result));
-                            mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(latLng, 12.0f));
+                            mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(latLng, 11.5f));
                         }
                         else{
                             marker = mMap.addMarker(new MarkerOptions().position(latLng).title(result));
-                            mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(latLng, 12.0f));
+                            mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(latLng, 11.5f));
                         }
 
 
@@ -191,6 +228,84 @@ public class GalleryFragment extends Fragment implements OnMapReadyCallback {
 
     }
 
+    protected void retrieveAndAddStations() throws IOException {
+        HttpURLConnection conn = null;
+        final StringBuilder json = new StringBuilder();
+        try {
+            // Connect to the web service
+            String SERVICE_URL = "https://opendata.paris.fr/api/records/1.0/search/?dataset=velib-disponibilite-en-temps-reel&facet=overflowactivation&facet=creditcard&facet=kioskstate&facet=station_state";
+            URL url = new URL(SERVICE_URL);
+            System.out.println(url);
+            conn = (HttpURLConnection) url.openConnection();
+            InputStreamReader in = new InputStreamReader(conn.getInputStream());
+            // Read the JSON data into the StringBuilder
+            int read;
+            char[] buff = new char[1024];
+            while ((read = in.read(buff)) != -1) {
+                json.append(buff, 0, read);
+            }
+        } catch (IOException e) {
+            Log.e("", "Error connecting to service", e);
+            throw new IOException("Error connecting to service", e);
+        } finally {
+            if (conn != null) {
+                conn.disconnect();
+            }
+        }
+
+        // Create markers for the city data.
+        // Must run this on the UI thread since it"s a UI operation.
+        createMarkersFromJson();
+    }
+
+    private void createMarkersFromJson() {
+        String urlGetServerData = "https://opendata.paris.fr/api/records/1.0/search/?dataset=velib-disponibilite-en-temps-reel&facet=overflowactivation&facet=creditcard&facet=kioskstate&facet=station_state";
+        System.out.print(urlGetServerData);
+        JsonObjectRequest jsonObjectRequest = new JsonObjectRequest(Request.Method.GET, urlGetServerData,null,
+                new Response.Listener<JSONObject>() {
+                    @Override
+                    public void onResponse(JSONObject response) {
+                        System.out.println(response);
+
+                        try {
+                            JSONArray jsonArray = response.getJSONArray("records");
+
+                            for (int p=0; p<jsonArray.length(); p++){
+                                JSONObject jsonObject = jsonArray.getJSONObject(p);
+                                JSONObject fields = jsonObject.getJSONObject("fields");
+                                String station = fields.getString("station");
+                                String lat = station.substring(station.indexOf("latitude") + 11 , station.lastIndexOf(","));
+                                String lon = station.substring(station.indexOf("longitude") + 11 , station.lastIndexOf("}}"));
+                                double mlat = Double.parseDouble(lat);
+                                double mlon = Double.parseDouble(lon);
+
+                                mMap.addMarker(new MarkerOptions()
+                                        .title(fields.getString("station_code") + " - " + fields.getString("station_name"))
+                                        .position(new LatLng(
+                                                mlat,
+                                                mlon)
+
+                                        ));
+                            }
+
+
+                        } catch (JSONException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                },
+                new Response.ErrorListener() {
+                    @Override
+                    public void onErrorResponse(VolleyError error) {
+                        System.out.println(error.toString());
+                    }
+                });
+        RequestQueue requestQueue = Volley.newRequestQueue(getContext().getApplicationContext());
+        requestQueue.add(jsonObjectRequest);
+    }
+
+
+
     /**
      * Manipulates the map once available.
      * This callback is triggered when the map is ready to be used.
@@ -205,10 +320,22 @@ public class GalleryFragment extends Fragment implements OnMapReadyCallback {
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
 
+
+        new Thread(new Runnable() {
+            public void run() {
+                try {
+                    retrieveAndAddStations();
+                } catch (IOException e) {
+                    Log.e("", "Cannot retrive cities", e);
+                    return;
+                }
+            }
+        }).start();
         // Add a marker in Sydney and move the camera
         /*LatLng sydney = new LatLng(-34, 151);
         mMap.addMarker(new MarkerOptions().position(sydney).title("Marker in Sydney"));
         mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(sydney, 12f)); */
     }
+
 
 }

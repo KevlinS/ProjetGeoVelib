@@ -66,8 +66,8 @@ public class HomeFragment extends Fragment {
                             for (int p=0; p<jsonArray.length(); p++){
                                 JSONObject jsonObject = jsonArray.getJSONObject(p);
                                 Rvdata rvdata = gson.fromJson(String.valueOf(jsonObject), Rvdata.class);
-                                rvdata.setName(jsonObject.getString("datasetid"));
                                 JSONObject fields = jsonObject.getJSONObject("fields");
+
                                 rvdata.setName(fields.getString("station_name"));
 
                                 proSearch.add(rvdata);

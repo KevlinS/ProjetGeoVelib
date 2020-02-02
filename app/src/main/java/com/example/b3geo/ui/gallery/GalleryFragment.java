@@ -1,37 +1,24 @@
 package com.example.b3geo.ui.gallery;
 
 import android.Manifest;
-import android.app.Activity;
-import android.app.Application;
-import android.content.Context;
 import android.content.pm.PackageManager;
-import android.graphics.Color;
 import android.location.Address;
 import android.location.Geocoder;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
-import android.net.ConnectivityManager;
-import android.net.NetworkInfo;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
-import android.widget.Toast;
-import androidx.appcompat.widget.Toolbar;
 
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.core.app.ActivityCompat;
-import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
-import androidx.fragment.app.FragmentActivity;
-import androidx.fragment.app.FragmentManager;
-import androidx.fragment.app.FragmentTransaction;
-
 
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
@@ -39,17 +26,14 @@ import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.Volley;
-import com.example.b3geo.MainActivity;
 import com.example.b3geo.R;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
-import com.google.android.gms.maps.model.CircleOptions;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
-import com.google.android.material.bottomnavigation.BottomNavigationView;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -72,9 +56,6 @@ public class GalleryFragment extends Fragment implements OnMapReadyCallback {
     private static final int REQUEST_LOCATION_PERMISSION = 1;
     Marker marker;
     LocationListener locationListener;
-
-
-
 
 
     /* public static GalleryFragment newInstance() {
@@ -104,9 +85,6 @@ public class GalleryFragment extends Fragment implements OnMapReadyCallback {
         });
 
 
-
-
-
         LocationManager locationManager = (LocationManager) getActivity().getSystemService(LOCATION_SERVICE);
         if (ActivityCompat.checkSelfPermission(getActivity(),
                 Manifest.permission.ACCESS_FINE_LOCATION)
@@ -118,7 +96,6 @@ public class GalleryFragment extends Fragment implements OnMapReadyCallback {
         } else {
 
             locationListener = new LocationListener() {
-
 
                 @Override
                 public void onLocationChanged(Location location) {
@@ -253,8 +230,6 @@ public class GalleryFragment extends Fragment implements OnMapReadyCallback {
             }
         }
 
-        // Create markers for the city data.
-        // Must run this on the UI thread since it"s a UI operation.
         createMarkersFromJson();
     }
 

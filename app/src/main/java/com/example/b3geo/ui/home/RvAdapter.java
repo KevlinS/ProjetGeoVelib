@@ -11,7 +11,6 @@ import android.widget.TextView;
 
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.bumptech.glide.Glide;
 import com.example.b3geo.R;
 
 import java.util.ArrayList;
@@ -41,15 +40,6 @@ public class RvAdapter extends RecyclerView.Adapter<RvAdapter.RvViewHolder>{
         final Rvdata  rvdata = rvdatas.get(position);
         holder.itemName.setText(rvdata.getName());
 
-
-        /* holder.llItem.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Intent intent = new Intent(context,NewActivity.class);
-                intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                context.startActivity(intent);
-            }
-        }); */
     }
 
     @Override
